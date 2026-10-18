@@ -1,0 +1,17 @@
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/images/my_ufape_logo_azul.png
+  remove_alpha_ios: true
+  background_color_ios: '#ffffff'
+  adaptive_icon_background: '#ffffff'
+  adaptive_icon_foreground: assets/images/my_ufape_logo_azul.png
+  web:
+    generate: true
+    image_path: assets/images/my_ufape_logo_azul.png
+    background_color: '#f8fafc'
+    theme_color: '#4f46e5'
+  windows:
+    generate: true
+    image_path: assets/images/my_ufape_logo_azul.png
+    icon_size: 256
