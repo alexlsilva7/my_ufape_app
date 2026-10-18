@@ -212,3 +212,23 @@ Validação: suíte completa com **123 testes aprovados**, análise estática se
 As capturas `home-small-choices.png`, `home-small-selected.png`, `home-phone-dark.png`, `home-tablet.png`, `home-landscape.png`, `home-large-choices.png`, `home-large-selected.png` e `home-desktop.png`, com suas versões `-footer`, são renderizações de widgets, sem teste em aparelho físico.
 
 O build Web release foi atualizado com `.env`. A prévia local retornou HTTP 200 e o SHA-256 de `main.dart.js` correspondeu ao arquivo compilado. APK e Windows não foram recompilados nesta etapa.
+
+## Foco e menus de contexto — 18/10/2026
+
+A pesquisa recebe foco ao abrir a definição de optativa; no modo manual, o nome recebe foco. Os cartões da matriz têm menu de botão direito para detalhes/notas, escolha explícita de status e edição de optativas. Ofertas da lista e blocos da grade semanal oferecem detalhes, adição/remoção e conclusão conforme suas ações disponíveis. As regras existentes de conflito e conclusão continuam sendo aplicadas pelo estado.
+
+`AcademicContextMenu` compartilha o comportamento de mouse e teclado (`Shift + F10`, tecla de menu e `Esc`). O menu nativo do navegador é suspenso enquanto existem cartões acadêmicos montados, preservando sua configuração anterior para restaurá-la ao sair. Os cliques normais e o toque prolongado da matriz mantêm suas ações.
+
+Validação: **130 testes aprovados** na suíte completa e análise estática sem problemas. Os sete novos cenários verificam foco sem clicar no campo, status explícito sem ativar o clique normal, definição de optativa pelo menu, conflitos, conclusão, remoção, menu junto à borda e fechamento por teclado com restauração do foco.
+
+O runner automatizado em Chrome não concluiu o carregamento e foi encerrado; seus casos Web não foram considerados aprovados. A prévia Web compilada foi verificada no navegador do app: o botão direito exibiu as ações da matriz sem o menu nativo, e `Esc` fechou sem modificar o progresso. Registro visual: `docs/screenshots/matriz-menu-contexto.png`.
+
+## Proporção dos ícones — 18/10/2026
+
+O gerador recebia diretamente o brasão de 440 × 596 px e o esticava para um quadrado. `tool/generate_icons.dart` prepara telas quadradas com o brasão centralizado, preservando sua proporção. Os ícones de Windows e navegador usam transparência; Android/iOS usam as margens e fundos apropriados; os ícones maskable da PWA têm uma área segura própria.
+
+O ICO contém versões nativas de 16, 24, 32, 48, 64, 128 e 256 px. O favicon usa uma revisão de URL para atualizar o cache. Os arquivos originais usados dentro das telas não foram alterados. O processo de geração está em [icones.md](icones.md).
+
+Recursos de Windows, Android, Web e iOS regenerados e inspecionados visualmente. A análise estática passou sem problemas. Builds release Web, APK e Windows concluídos. O primeiro build Windows encontrou o executável original aberto (`LNK1104`); a compilação final foi realizada com uma cópia isolada dos fontes em `build/windows-icon-release-source/`, preservando o aplicativo em execução. Seu executável final fica em `build/windows-icon-release-source/build/windows/x64/runner/Release/my_ufape.exe`; o ZIP de distribuição é `build/releases/My-UFAPE-windows-x64.zip`.
+
+O novo favicon foi servido pela prévia local com HTTP 200 e hash idêntico ao arquivo gerado. Os ícones iOS foram gerados, sem compilação iOS neste Windows. Instalação em Android físico e atualização do cache de atalhos nativos não foram automatizadas.
