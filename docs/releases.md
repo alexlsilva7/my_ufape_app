@@ -44,6 +44,11 @@ Antes de distribuir, confirme que `anon` pode consultar `courses`, `course_curri
 do banco. A consulta acadêmica usa o Supabase diretamente; sugestões ainda passam
 pela API pública do site para manter a proteção contra spam.
 
+O job Web executa `dart run tool/validate_supabase.dart` usando os repositórios
+reais do app e a configuração pública da release. A publicação exige que a lista
+de cursos, os perfis da matriz, as ementas e as ofertas de BCC/2026.2 sejam
+carregados sem login. É uma validação somente de leitura; não modifica o banco.
+
 ## Builds locais
 
 Na pasta do app, crie `.env` a partir de `.env.example` e mantenha `DATA_SOURCE=local`

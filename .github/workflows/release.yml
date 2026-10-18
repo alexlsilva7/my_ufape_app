@@ -63,6 +63,9 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: python tool/prepare_release.py
       - run: flutter pub get --enforce-lockfile
+      - name: Validar leitura Supabase sem login
+        if: matrix.platform == 'web' && env.DATA_SOURCE == 'supabase'
+        run: dart run tool/validate_supabase.dart
       - name: Análise e testes
         if: matrix.platform == 'web'
         run: |

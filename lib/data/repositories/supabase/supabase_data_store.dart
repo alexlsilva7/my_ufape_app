@@ -79,7 +79,7 @@ class SupabaseDataStore implements AcademicDataStore {
   }
 
   Map<String, String> _filters(Map<String, String> filters) => {
-    for (final e in filters.entries) e.key: 'eq.${jsonEncode(e.value)}',
+    for (final e in filters.entries) e.key: 'eq.${e.value}',
   };
   @override
   Future<List<JsonMap>> select(

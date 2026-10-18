@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import '../../../core/models.dart';
 import '../../../domain/repositories/feedback_repository.dart';
 import '../document_feedback_repository.dart';
@@ -33,7 +31,7 @@ class SupabaseFeedbackRepository extends DocumentFeedbackRepository {
       await _supabase.request(
         'site_feedback',
         method: 'PATCH',
-        query: {'id': 'eq.${jsonEncode(id)}'},
+        query: {'id': 'eq.$id'},
         body: {
           'status': status,
           'internal_notes': notes,

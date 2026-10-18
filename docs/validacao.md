@@ -232,3 +232,26 @@ O ICO contém versões nativas de 16, 24, 32, 48, 64, 128 e 256 px. O favicon us
 Recursos de Windows, Android, Web e iOS regenerados e inspecionados visualmente. A análise estática passou sem problemas. Builds release Web, APK e Windows concluídos. O primeiro build Windows encontrou o executável original aberto (`LNK1104`); a compilação final foi realizada com uma cópia isolada dos fontes em `build/windows-icon-release-source/`, preservando o aplicativo em execução. Seu executável final fica em `build/windows-icon-release-source/build/windows/x64/runner/Release/my_ufape.exe`; o ZIP de distribuição é `build/releases/My-UFAPE-windows-x64.zip`.
 
 O novo favicon foi servido pela prévia local com HTTP 200 e hash idêntico ao arquivo gerado. Os ícones iOS foram gerados, sem compilação iOS neste Windows. Instalação em Android físico e atualização do cache de atalhos nativos não foram automatizadas.
+
+## Leitura direta Supabase — 18/10/2026
+
+As quatro tabelas acadêmicas retornaram HTTP 200 com a chave pública do app,
+sem token de usuário. RLS está ativo; `anon` tem SELECT e não tem INSERT, UPDATE
+ou DELETE. As políticas existentes liberam somente SELECT. Nenhuma alteração
+adicional no banco foi necessária nesta validação.
+
+A validação do Web revelou filtros com aspas JSON extras (`eq."bcc"`), que o
+PostgREST interpretava como parte do identificador. O cliente passou a enviar
+valores literais (`eq.bcc`, `eq.2026.2`), preservando a codificação da URL. O mesmo
+ajuste foi aplicado ao identificador na atualização de feedback.
+
+`dart run tool/validate_supabase.dart` consulta os repositórios reais do app:
+9 cursos; BCC/2026.2 com 2 perfis, 99 disciplinas, 98 ementas e 47 ofertas.
+O teste é somente de leitura e também passa a ser obrigatório no workflow da
+variante Supabase. Os três testes do provedor passaram, incluindo a regressão
+para curso/semestre, atualização de feedback e filtros de exclusão.
+
+O advisor não apontou problemas nas quatro tabelas acadêmicas. O projeto ainda
+tem um aviso de [proteção contra senhas vazadas desativada](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)
+no Auth, além de avisos informativos sobre tabelas privadas sem políticas de
+acesso. Essas configurações não foram modificadas.

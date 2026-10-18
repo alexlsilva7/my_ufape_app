@@ -60,6 +60,9 @@ void main() {
         if (request.method == 'PATCH') {
           expect(request.headers['Authorization'], 'Bearer admin-token');
           expect(request.url.path, endsWith('/site_feedback'));
+          if (request.url.queryParameters['id'] != 'eq.feedback') {
+            return http.Response('[]', 200);
+          }
           return http.Response(
             jsonEncode([
               {
@@ -109,7 +112,18 @@ void main() {
           ],
           _ => <dynamic>[],
         };
-        return http.Response(jsonEncode(data), 200);
+        // PostgREST compares the literal value after eq.; JSON quotes become
+        // part of the identifier and must not match an existing course.
+        final matchingRows = data.where((row) {
+          for (final filter in request.url.queryParameters.entries) {
+            if (filter.value.startsWith('eq.') &&
+                '${row[filter.key]}' != filter.value.substring(3)) {
+              return false;
+            }
+          }
+          return true;
+        }).toList();
+        return http.Response(jsonEncode(matchingRows), 200);
       }),
       apiFactory: (_) => throw StateError(
         'Academic Supabase operations must not call Express',
@@ -156,6 +170,29 @@ void main() {
       isTrue,
     );
   });
+
+  test(
+    'Supabase equality keeps course and semester identifiers literal',
+    () async {
+      final store = SupabaseDataStore(
+        url: 'https://test.supabase.co',
+        key: 'sb_publishable_test',
+        client: MockClient((request) async {
+          expect(request.url.queryParameters['course_id'], 'eq.bcc');
+          expect(request.url.queryParameters['semester'], 'eq.2026.2');
+          expect(request.headers.containsKey('Authorization'), isFalse);
+          return request.method == 'DELETE'
+              ? http.Response('', 204)
+              : http.Response('[{"course_id":"bcc","semester":"2026.2"}]', 200);
+        }),
+      );
+      addTearDown(store.dispose);
+      const filters = {'course_id': 'bcc', 'semester': '2026.2'};
+      final rows = await store.select('course_schedules', filters: filters);
+      expect(rows.single['semester'], '2026.2');
+      await store.delete('course_schedules', filters);
+    },
+  );
 
   test(
     'Supabase pagination does not lose rows and propagates permission failures',

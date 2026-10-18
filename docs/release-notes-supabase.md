@@ -1,5 +1,9 @@
 My UFAPE para Android, Windows, Linux e Web, compilado em modo release com **DATA_SOURCE=supabase**.
 
+Corrige os filtros de curso, semestre e identificador: aspas extras nas consultas
+faziam a matriz, o catálogo e os horários aparecerem vazios mesmo com leitura
+permitida no banco. Os builds anteriores `v1.0.0-supabase` são substituídos por esta correção.
+
 - Cursos, matrizes, disciplinas e horários são consultados diretamente no Supabase.
 - Usa a URL do projeto e a chave pública de cliente, sem chave `service_role` ou chave secreta no aplicativo.
 - Requer conexão e permissão de leitura das tabelas acadêmicas no Supabase.
