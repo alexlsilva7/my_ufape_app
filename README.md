@@ -16,39 +16,6 @@
 
 ---
 
-## 📜 Histórico & Diferenças em Relação ao App Original
-
-É importante destacar a distinção clara de proposta e funcionamento entre os projetos do ecossistema:
-
-### ⚠️ Diferença Fundamental de Escopo
-
-> [!IMPORTANT]
-> **Este aplicativo NÃO possui todas as funções do My UFAPE original e NÃO realiza extração direta (*web scraping*) do portal SIGA.**
->
-> Enquanto o app original conectava-se à conta individual do aluno para raspar notas, faltas e turmas do portal acadêmico em tempo real, **este projeto é focado estritamente no planejamento acadêmico e consulta curricular**: ele utiliza **informações oficiais já previamente extraídas e estruturadas** dos cursos da UFAPE (matrizes curriculares, ementas completas, ofertas semestrais de horários e calendário oficial). O estudante não precisa inserir nenhuma credencial do SIGA.
-
-### Comparativo dos Projetos
-
-1. 📱 **O App Móvel Original ([alexlsilva7/my_ufape](https://github.com/alexlsilva7/my_ufape))**:
-   - **Proposta:** Acesso pessoal do estudante ao SIGA.
-   - **Como funcionava:** Fazia *web scraping* automatizado via WebView com login do aluno, extraindo notas, histórico individual, faltas e turmas correntes diretamente do portal da universidade.
-   - **Tecnologias:** Flutter, Isar Community (banco NoSQL local), Routefly e Shorebird.
-
-2. 🌐 **A Plataforma Web Curricular ([alexlsilva7/grade_academica_app](https://github.com/alexlsilva7/grade_academica_app))**:
-   - **Proposta:** Planejador de horários e visualizador de matrizes curriculares da UFAPE.
-   - **Como funciona:** Plataforma em React, TypeScript e Supabase para simulação de grade sem choques, cálculo de pré-requisitos liberados, catálogo de ementas e exportação em imagem.
-
-3. 🚀 **Este Repositório — My UFAPE App ([alexlsilva7/my_ufape_app](https://github.com/alexlsilva7/my_ufape_app))**:
-   - **Proposta:** Versão nativa multiplataforma do planejador acadêmico.
-   - **Como funciona:** Opera sobre as **informações de horários, grade e disciplinas já extraídas e consolidadas** (embarcadas em JSON em `assets/data/` ou servidas via Supabase/API).
-   - **Vantagens desta abordagem:**
-     - **Segurança e privacidade:** Não solicita nem armazena login e senha institucionais do SIGA.
-     - **100% Offline-First:** Funciona imediatamente mesmo se o SIGA estiver fora do ar ou sem sinal de internet.
-     - **Multiplataforma:** Compilável para Android, iOS, Windows x64 e Web com alta performance gráfica.
-     - **Interoperabilidade:** Backups de progresso e preferências são compatíveis 1:1 com a plataforma web.
-
----
-
 ## ✨ Funcionalidades Principais
 
 - 📅 **Planejador de Grade Horária Semestral**:
@@ -87,6 +54,39 @@
 | Imagem PNG Exportada (2300px) | Catálogo de Disciplinas |
 | :---: | :---: |
 | ![Exportação da Grade](docs/screenshots/horarios-exportacao.png) | ![Catálogo](docs/screenshots/catalogo-desktop.png) |
+
+---
+
+## 📜 Histórico & Relação com os Projetos Anteriores
+
+É importante destacar a distinção clara de proposta e funcionamento entre os projetos do ecossistema:
+
+### ⚠️ Diferença Fundamental de Escopo
+
+> [!IMPORTANT]
+> **Este aplicativo NÃO possui todas as funções do My UFAPE original e NÃO realiza extração direta (*web scraping*) do portal SIGA.**
+>
+> Enquanto o app original conectava-se à conta individual do aluno para raspar notas, faltas e turmas do portal acadêmico em tempo real, **este projeto é focado estritamente no planejamento acadêmico e consulta curricular**: ele utiliza **informações oficiais já previamente extraídas e estruturadas** dos cursos da UFAPE (matrizes curriculares, ementas completas, ofertas semestrais de horários e calendário oficial). O estudante não precisa inserir nenhuma credencial do SIGA.
+
+### Comparativo dos Projetos
+
+1. 📱 **O App Móvel Original ([alexlsilva7/my_ufape](https://github.com/alexlsilva7/my_ufape))**:
+   - **Proposta:** Acesso pessoal do estudante ao SIGA.
+   - **Como funcionava:** Fazia *web scraping* automatizado via WebView com login do aluno, extraindo notas, histórico individual, faltas e turmas correntes diretamente do portal da universidade.
+   - **Tecnologias:** Flutter, Isar Community (banco NoSQL local), Routefly e Shorebird.
+
+2. 🌐 **A Plataforma Web Curricular ([alexlsilva7/grade_academica_app](https://github.com/alexlsilva7/grade_academica_app))**:
+   - **Proposta:** Planejador de horários e visualizador de matrizes curriculares da UFAPE.
+   - **Como funciona:** Plataforma em React, TypeScript e Supabase para simulação de grade sem choques, cálculo de pré-requisitos liberados, catálogo de ementas e exportação em imagem.
+
+3. 🚀 **Este Repositório — My UFAPE App ([alexlsilva7/my_ufape_app](https://github.com/alexlsilva7/my_ufape_app))**:
+   - **Proposta:** Versão nativa multiplataforma do planejador acadêmico.
+   - **Como funciona:** Opera sobre as **informações de horários, grade e disciplinas já extraídas e consolidadas** (embarcadas em JSON em `assets/data/` ou servidas via Supabase/API).
+   - **Vantagens desta abordagem:**
+     - **Segurança e privacidade:** Não solicita nem armazena login e senha institucionais do SIGA.
+     - **100% Offline-First:** Funciona imediatamente mesmo se o SIGA estiver fora do ar ou sem sinal de internet.
+     - **Multiplataforma:** Compilável para Android, iOS, Windows x64 e Web com alta performance gráfica.
+     - **Interoperabilidade:** Backups de progresso e preferências são compatíveis 1:1 com a plataforma web.
 
 ---
 
