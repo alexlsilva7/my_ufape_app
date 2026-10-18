@@ -260,6 +260,13 @@ e outras. O console não registrou erros. Captura:
 `docs/screenshots/supabase-horarios-optativas.png`. Os testes de interface foram
 feitos no navegador; aparelhos Android físicos não foram usados nesta validação.
 
+Release corrigida: [v1.0.1-supabase](https://github.com/alexlsilva7/my_ufape_app/releases/tag/v1.0.1-supabase).
+Android (APK universal, três APKs por arquitetura e AAB), Windows x64, Linux x64
+e Web compilaram com sucesso. Os oito pacotes publicados foram baixados e seus
+SHA-256 conferidos. URL Supabase, chave pública e versão foram confirmadas no
+JavaScript e nos binários AOT de todas as arquiteturas. A validação de leitura
+real pelos repositórios também passou no GitHub Actions.
+
 O advisor não apontou problemas nas quatro tabelas acadêmicas. O projeto ainda
 tem um aviso de [proteção contra senhas vazadas desativada](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)
 no Auth, além de avisos informativos sobre tabelas privadas sem políticas de
