@@ -251,6 +251,15 @@ O teste é somente de leitura e também passa a ser obrigatório no workflow da
 variante Supabase. Os três testes do provedor passaram, incluindo a regressão
 para curso/semestre, atualização de feedback e filtros de exclusão.
 
+A suíte completa passou com **131 testes** e a análise estática não apontou
+problemas. O Web release corrigido foi servido por HTTP estático, sem proxy da
+API: a matriz e o catálogo carregaram, os detalhes de disciplina abriram e a
+troca de 2026.1 para 2026.2 atualizou as ofertas. O filtro de optativas exibiu
+as turmas de Desenvolvimento de Aplicações Móveis, Projeto de Jogos Digitais
+e outras. O console não registrou erros. Captura:
+`docs/screenshots/supabase-horarios-optativas.png`. Os testes de interface foram
+feitos no navegador; aparelhos Android físicos não foram usados nesta validação.
+
 O advisor não apontou problemas nas quatro tabelas acadêmicas. O projeto ainda
 tem um aviso de [proteção contra senhas vazadas desativada](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)
 no Auth, além de avisos informativos sobre tabelas privadas sem políticas de
