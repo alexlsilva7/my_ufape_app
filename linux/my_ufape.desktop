@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=My UFAPE
+Comment=Planejamento de horários e acompanhamento acadêmico
+Exec=my_ufape
+Icon=my_ufape
+Categories=Education;
+Terminal=false

@@ -112,3 +112,11 @@ lib/
 │   ├── settings/         # Gerenciamento de backups, fonte de dados e preferências
 │   └── admin/            # Painel administrativo de dados acadêmicos
 └── services/             # Serviços utilitários de manipulação de arquivos e renderização de imagens
+```
+
+## Builds e releases
+
+Os comandos de build, requisitos e publicação estão em [docs/releases.md](docs/releases.md).
+A automação de release gera Android (APKs e AAB), Windows x64, Linux x64 e Web,
+com dados locais por padrão e checksums SHA-256. Os downloads ficam nas
+[releases do app](https://github.com/alexlsilva7/my_ufape_app/releases).
