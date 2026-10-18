@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../lib/core/models.dart';
-import '../lib/data/repositories/supabase/supabase_contents_repository.dart';
-import '../lib/data/repositories/supabase/supabase_course_repository.dart';
-import '../lib/data/repositories/supabase/supabase_curriculum_repository.dart';
-import '../lib/data/repositories/supabase/supabase_data_store.dart';
-import '../lib/data/repositories/supabase/supabase_schedule_repository.dart';
+import 'package:my_ufape/core/models.dart';
+import 'package:my_ufape/data/repositories/supabase/supabase_contents_repository.dart';
+import 'package:my_ufape/data/repositories/supabase/supabase_course_repository.dart';
+import 'package:my_ufape/data/repositories/supabase/supabase_curriculum_repository.dart';
+import 'package:my_ufape/data/repositories/supabase/supabase_data_store.dart';
+import 'package:my_ufape/data/repositories/supabase/supabase_schedule_repository.dart';
 
 /// Read-only smoke test through the same repositories used by the app.
 Future<void> main(List<String> args) async {
