@@ -11,4 +11,6 @@ Para criar um atalho, adapte Exec e Icon em my_ufape.desktop para os caminhos
 absolutos do executável e de my_ufape.png na pasta extraída. Depois copie o
 atalho para ~/.local/share/applications/.
 
-Esta distribuição usa os dados JSON embarcados e funciona offline por padrão.
+A fonte de dados está indicada nas notas da release e ao final deste arquivo.
+Na variante local, usa JSON embarcado e funciona offline. Na variante Supabase,
+consulta os dados acadêmicos diretamente no Supabase e requer conexão.

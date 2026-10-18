@@ -4,6 +4,15 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      data_source:
+        description: Fonte dos dados acadêmicos
+        type: choice
+        options: [local, supabase]
+        default: local
+
+env:
+  DATA_SOURCE: ${{ inputs.data_source || (endsWith(github.ref_name, '-supabase') && 'supabase') || 'local' }}
 
 permissions:
   contents: read
@@ -30,10 +39,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Java para Android
         if: matrix.platform == 'android'
-        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: '17'
@@ -48,18 +57,11 @@ jobs:
           flutter-version: '3.47.5'
           channel: stable
           cache: true
-      - name: Preparar configuração offline da release
-        shell: bash
-        run: |
-          version=$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)
-          tag="v$version"
-          if [[ "$GITHUB_REF_TYPE" == tag && "$GITHUB_REF_NAME" != "$tag" ]]; then
-            echo "A tag deve corresponder à versão do pubspec.yaml: $tag" >&2
-            exit 1
-          fi
-          printf 'DATA_SOURCE=local\nAPP_VERSION=%s\n' "$version" > .env.release
-          echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
-          mkdir -p dist
+      - name: Preparar configuração pública da release
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: python tool/prepare_release.py
       - run: flutter pub get --enforce-lockfile
       - name: Análise e testes
         if: matrix.platform == 'web'
@@ -70,29 +72,30 @@ jobs:
         if: matrix.platform == 'android'
         shell: bash
         run: |
-          flutter build apk --release --no-pub --dart-define-from-file=.env.release
+          flutter build apk --release --no-pub --dart-define-from-file=.env.release.json
           cp build/app/outputs/flutter-apk/app-release.apk "dist/My-UFAPE-$RELEASE_TAG-android.apk"
-          flutter build apk --release --no-pub --split-per-abi --dart-define-from-file=.env.release
+          flutter build apk --release --no-pub --split-per-abi --dart-define-from-file=.env.release.json
           for abi in armeabi-v7a arm64-v8a x86_64; do
             cp "build/app/outputs/flutter-apk/app-$abi-release.apk" "dist/My-UFAPE-$RELEASE_TAG-android-$abi.apk"
           done
-          flutter build appbundle --release --no-pub --dart-define-from-file=.env.release
+          flutter build appbundle --release --no-pub --dart-define-from-file=.env.release.json
           cp build/app/outputs/bundle/release/app-release.aab "dist/My-UFAPE-$RELEASE_TAG-android.aab"
       - name: Web
         if: matrix.platform == 'web'
         shell: bash
         run: |
-          flutter build web --release --no-pub --no-web-resources-cdn --dart-define-from-file=.env.release
+          flutter build web --release --no-pub --no-web-resources-cdn --dart-define-from-file=.env.release.json
           (cd build/web && zip -qr "../../dist/My-UFAPE-$RELEASE_TAG-web.zip" .)
       - name: Linux x64
         if: matrix.platform == 'linux'
         shell: bash
         run: |
-          flutter build linux --release --no-pub --dart-define-from-file=.env.release
+          flutter build linux --release --no-pub --dart-define-from-file=.env.release.json
           bundle=build/linux/x64/release/bundle
           cp assets/launcher/launcher_icon.png "$bundle/my_ufape.png"
           cp linux/my_ufape.desktop "$bundle/"
           cp linux/README.txt "$bundle/"
+          printf '\nFonte de dados desta distribuição: %s\n' "$DATA_SOURCE" >> "$bundle/README.txt"
           tar -czf "dist/My-UFAPE-$RELEASE_TAG-linux-x64.tar.gz" -C "$bundle" .
       - name: Verificar inicialização Linux
         if: matrix.platform == 'linux'
@@ -110,10 +113,10 @@ jobs:
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          flutter build windows --release --no-pub --dart-define-from-file=.env.release
+          flutter build windows --release --no-pub --dart-define-from-file=.env.release.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "dist/My-UFAPE-$env:RELEASE_TAG-windows-x64.zip"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: release-${{ matrix.platform }}
           path: dist/*
@@ -127,8 +130,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           pattern: release-*
           merge-multiple: true
@@ -140,5 +143,10 @@ jobs:
         run: |
           version=$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)
           tag="v$version"
+          notes=docs/release-notes.md
+          if [[ "$DATA_SOURCE" == supabase ]]; then
+            tag="$tag-supabase"
+            notes=docs/release-notes-supabase.md
+          fi
           (cd dist && sha256sum * > SHA256SUMS.txt)
-          gh release create "$tag" dist/* --target "$GITHUB_SHA" --title "My UFAPE $tag" --notes-file docs/release-notes.md --latest
+          gh release create "$tag" dist/* --target "$GITHUB_SHA" --title "My UFAPE $tag" --notes-file "$notes" --latest
