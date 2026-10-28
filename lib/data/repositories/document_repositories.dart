@@ -45,6 +45,7 @@ class DocumentScheduleRepository implements ScheduleRepository {
   Future<List<String>> semesters(String courseId) async => (await store.select(
     'course_schedules',
     filters: {'course_id': courseId},
+    columns: ['semester'],
   )).map((row) => textOf(row['semester'])).toList()..sort();
   @override
   Future<JsonMap?> get(String courseId, String semester) async =>

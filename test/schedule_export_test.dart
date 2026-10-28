@@ -7,9 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_ufape/core/models.dart';
 import 'package:my_ufape/core/theme/app_theme.dart';
-import 'package:my_ufape/features/academic/schedule/export_card.dart';
-import 'package:my_ufape/features/academic/schedule/week_grid.dart';
-import 'package:my_ufape/features/academic/schedule/week_layout.dart';
+import 'package:my_ufape/features/academic/schedule/widgets/export_card.dart';
+import 'package:my_ufape/features/academic/schedule/widgets/week_grid.dart';
+import 'package:my_ufape/features/academic/schedule/widgets/week_layout.dart';
 import 'package:my_ufape/services/widget_image.dart';
 
 List<Discipline> referenceSchedule() {

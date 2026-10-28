@@ -4,34 +4,40 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import 'app/app_shell.dart';
-import 'app/app_repositories.dart';
+import 'app/admin_route.dart';
+import 'config/dependencies.dart';
+import 'data/repositories/personal/personal_storage_repository.dart';
 import 'core/app_state.dart';
 import 'core/theme/app_theme.dart';
-import 'features/academic/catalog_screen.dart';
-import 'features/academic/matrix_screen.dart';
-import 'features/academic/schedule_screen.dart';
-import 'features/admin/admin_screen.dart';
-import 'features/calendar/calendar_screen.dart';
-import 'features/home/home_screen.dart';
-import 'features/settings/settings_screen.dart';
+import 'features/academic/catalog/catalog_view.dart';
+import 'features/academic/matrix/matrix_view.dart';
+import 'features/academic/schedule/schedule_view.dart';
+import 'features/calendar/calendar_view.dart';
+import 'features/feedback/feedback_view.dart';
+import 'features/home/home_view.dart';
+import 'features/settings/settings_view.dart';
 
 export 'app/academic_navigation.dart' show navigateAcademic, destinations;
 export 'app/app_shell.dart' show AppShell;
 export 'core/theme/app_theme.dart' show appTheme;
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const Bootstrap());
+  final dependencies = setupDependencies();
+  await dependencies.get<PersonalStorageRepository>().initialize();
+  runApp(Bootstrap(dependencies: dependencies));
 }
 
 class Bootstrap extends StatefulWidget {
-  const Bootstrap({super.key});
+  const Bootstrap({super.key, this.dependencies});
+  final AppDependencies? dependencies;
   @override
   State<Bootstrap> createState() => _BootstrapState();
 }
 
 class _BootstrapState extends State<Bootstrap> {
-  final state = AppState(repositories: AppRepositories());
+  late final AppDependencies _dependencies;
+  late final AppState state;
   final initialLocation = kIsWeb
       ? (Uri.base.fragment.startsWith('/')
             ? Uri.base.fragment
@@ -44,6 +50,8 @@ class _BootstrapState extends State<Bootstrap> {
   @override
   void initState() {
     super.initState();
+    _dependencies = widget.dependencies ?? setupDependencies();
+    state = _dependencies.state;
     load();
   }
 
@@ -54,7 +62,7 @@ class _BootstrapState extends State<Bootstrap> {
 
   @override
   void dispose() {
-    state.dispose();
+    _dependencies.dispose();
     super.dispose();
   }
 
@@ -63,7 +71,7 @@ class _BootstrapState extends State<Bootstrap> {
       ? MyUfapeApp(state: state, initialLocation: initialLocation)
       : MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: Scaffold(
+          builder: (context, _) => Scaffold(
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -164,7 +172,7 @@ class _MyUfapeAppState extends State<MyUfapeApp> {
     routes: [
       ShellRoute(
         builder: (context, route, child) => ListenableBuilder(
-          listenable: widget.state,
+          listenable: Listenable.merge([widget.state, widget.state.settings]),
           builder: (context, _) => AppShell(
             state: widget.state,
             location: route.uri.path,
@@ -174,31 +182,43 @@ class _MyUfapeAppState extends State<MyUfapeApp> {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, route) => HomeScreen(state: widget.state),
+            builder: (context, route) => HomeView(
+              viewModel: widget.state.home,
+              onFeedback: () => showDialog<void>(
+                context: context,
+                builder: (_) =>
+                    FeedbackView(viewModel: widget.state.feedback, view: '/'),
+              ),
+            ),
           ),
           GoRoute(
             path: '/schedule',
-            builder: (context, route) => ScheduleScreen(state: widget.state),
+            builder: (context, route) =>
+                ScheduleView(viewModel: widget.state.timetable),
           ),
           GoRoute(
             path: '/matriz',
-            builder: (context, route) => MatrixScreen(state: widget.state),
+            builder: (context, route) =>
+                MatrixView(viewModel: widget.state.matrix),
           ),
           GoRoute(
             path: '/disciplinas',
-            builder: (context, route) => CatalogScreen(state: widget.state),
+            builder: (context, route) =>
+                CatalogView(viewModel: widget.state.catalog),
           ),
           GoRoute(
             path: '/calendario',
-            builder: (context, route) => const CalendarScreen(),
+            builder: (context, route) =>
+                CalendarView(viewModel: widget.state.calendar),
           ),
           GoRoute(
             path: '/admin',
-            builder: (context, route) => AdminScreen(state: widget.state),
+            builder: (context, route) => AdminRoute(state: widget.state),
           ),
           GoRoute(
             path: '/configuracoes',
-            builder: (context, route) => SettingsScreen(state: widget.state),
+            builder: (context, route) =>
+                SettingsView(viewModel: widget.state.settings),
           ),
         ],
       ),
@@ -222,7 +242,7 @@ class _MyUfapeAppState extends State<MyUfapeApp> {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: widget.state,
+    listenable: widget.state.settings,
     builder: (context, _) => MaterialApp.router(
       title: 'My UFAPE',
       debugShowCheckedModeBanner: false,

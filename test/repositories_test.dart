@@ -1,3 +1,7 @@
+import 'package:my_ufape/data/repositories/course_details_reader.dart';
+
+import 'test_state.dart';
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -13,7 +17,10 @@ import 'package:my_ufape/domain/repositories/course_repository.dart';
 import 'package:my_ufape/domain/repositories/local_storage_repository.dart';
 
 class MemoryStorage implements LocalStorageRepository {
-  final values = <String, String>{'selectedCourse': 'bcc'};
+  final values = <String, String>{
+    'selectedCourse': 'bcc',
+    'selectedSemester': '2026.1',
+  };
   @override
   Future<Map<String, String>> readAll() async => Map.of(values);
   @override
@@ -22,7 +29,7 @@ class MemoryStorage implements LocalStorageRepository {
   Future<void> remove(String key) async => values.remove(key);
 }
 
-class StubCourses implements CourseRepository {
+class StubCourses with CourseDetailsReader implements CourseRepository {
   bool offline = false;
   final queries = <String>[];
   static const course = {'id': 'bcc', 'name': 'BCC', 'shortName': 'BCC'};
@@ -35,7 +42,7 @@ class StubCourses implements CourseRepository {
   }
 
   @override
-  Future<JsonMap> get(
+  Future<JsonMap> getDocument(
     String id, {
     String? semester,
     bool strict = false,
@@ -77,7 +84,7 @@ void main() {
         courses: courses,
         localStorage: storage,
       );
-      final state = AppState(repositories: repositories);
+      final state = createAppState(repositories: repositories);
       addTearDown(state.dispose);
       await state.initialize();
       expect(state.selectedCourse?.id, 'bcc');
@@ -91,7 +98,7 @@ void main() {
       courses.offline = true;
       await state.refresh();
       expect(state.offline, isTrue);
-      expect(state.courseDetails['course'], StubCourses.course);
+      expect(state.courseDetails?.course.toJson(), StubCourses.course);
       expect(state.error, isNull);
     },
   );

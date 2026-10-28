@@ -30,7 +30,11 @@ Future<void> main(List<String> args) async {
     if (asList(catalog['courses']).isEmpty) {
       throw StateError('A lista de cursos está vazia.');
     }
-    final data = await courses.get(courseId, semester: semester, strict: true);
+    final data = await courses.getDocument(
+      courseId,
+      semester: semester,
+      strict: true,
+    );
     final curriculum = asMap(data['curriculum']);
     final profiles = asList(curriculum['profiles']);
     final subjects = asList(curriculum['subjects']);

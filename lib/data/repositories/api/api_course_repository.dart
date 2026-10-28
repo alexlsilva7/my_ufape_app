@@ -1,8 +1,11 @@
+import '../course_details_reader.dart';
 import '../../../core/models.dart';
 import '../../../domain/repositories/course_repository.dart';
 import 'api_repository.dart';
 
-class ApiCourseRepository extends ApiRepository implements CourseRepository {
+class ApiCourseRepository extends ApiRepository
+    with CourseDetailsReader
+    implements CourseRepository {
   ApiCourseRepository(super.api, {super.token});
 
   @override
@@ -15,7 +18,7 @@ class ApiCourseRepository extends ApiRepository implements CourseRepository {
   }
 
   @override
-  Future<JsonMap> get(
+  Future<JsonMap> getDocument(
     String id, {
     String? semester,
     bool strict = false,

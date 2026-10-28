@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/app_state.dart';
-import '../features/feedback/feedback_dialog.dart';
+import '../core/widgets/persistence_banner.dart';
+import '../features/feedback/feedback_view.dart';
 import 'academic_navigation.dart';
 
 class AppShell extends StatelessWidget {
@@ -18,7 +19,18 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (location == '/') return Scaffold(body: SafeArea(child: child));
+    if (location == '/') {
+      return Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              PersistenceBanner(storage: state.storage),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+      );
+    }
     final academic = [
       '/schedule',
       '/matriz',
@@ -30,6 +42,7 @@ class AppShell extends StatelessWidget {
         color: Theme.of(context).scaffoldBackgroundColor,
         child: Column(
           children: [
+            PersistenceBanner(storage: state.storage),
             if (state.loading) const LinearProgressIndicator(minHeight: 2),
             if (state.offline)
               Material(
@@ -110,9 +123,7 @@ class AppShell extends StatelessWidget {
       ...?state.selectedCourse?.visibleSemesters,
     };
     final catalogDate = location == '/disciplinas'
-        ? DateTime.tryParse(
-            textOf(asMap(state.courseDetails['curriculum'])['export_date']),
-          )?.toLocal()
+        ? state.courseDetails?.catalogExportedAt?.toLocal()
         : null;
     String twoDigits(int value) => value.toString().padLeft(2, '0');
     Widget actionIcon(IconData icon, {Color? color}) {
@@ -172,7 +183,8 @@ class AppShell extends StatelessWidget {
               children: [
                 IconButton(
                   tooltip: 'Voltar ao início',
-                  onPressed: () => navigateAcademic(context, state, '/'),
+                  onPressed: () =>
+                      navigateAcademic(context, state.context, '/'),
                   icon: Icon(Icons.arrow_back, size: 19, color: muted),
                 ),
                 Image.asset(
@@ -275,11 +287,13 @@ class AppShell extends StatelessWidget {
                     if (value == 'feedback') {
                       showDialog<void>(
                         context: context,
-                        builder: (_) =>
-                            FeedbackDialog(state: state, view: location),
+                        builder: (_) => FeedbackView(
+                          viewModel: state.feedback,
+                          view: location,
+                        ),
                       );
                     } else {
-                      navigateAcademic(context, state, value);
+                      navigateAcademic(context, state.context, value);
                     }
                   },
                   itemBuilder: (context) => [

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/app_state.dart';
-import '../features/admin/admin_navigation_guard.dart';
+import '../core/academic_context.dart';
+import 'admin_navigation_guard.dart';
 
 const destinations = [
   ('/', Icons.home_outlined, 'Início'),
@@ -15,7 +15,7 @@ const destinations = [
 ];
 Future<void> navigateAcademic(
   BuildContext context,
-  AppState state,
+  AcademicContext state,
   String path,
 ) async {
   if (!await AdminNavigationGuard.allowLeave() || !context.mounted) return;

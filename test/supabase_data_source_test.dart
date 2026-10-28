@@ -130,7 +130,10 @@ void main() {
       ),
     );
     addTearDown(repositories.dispose);
-    final result = await repositories.courses.get('bcc', semester: '2026.2');
+    final result = await repositories.courses.getDocument(
+      'bcc',
+      semester: '2026.2',
+    );
     expect(result['resolvedSemester'], '2026.2');
     expect(result['curriculum']['subjects'], hasLength(1));
     expect(result['schedule'], hasLength(1));
@@ -154,7 +157,11 @@ void main() {
     });
     final write = requests.last;
     expect(write.method, 'POST');
-    expect(jsonDecode(write.body)['data']['name'], 'Authorized');
+    expect(write.url.path, endsWith('/rpc/commit_academic_course'));
+    expect(
+      jsonDecode(write.body)['p_changes'].single['row']['data']['name'],
+      'Authorized',
+    );
     expect(write.headers['Authorization'], 'Bearer admin-token');
     final feedback = await admin.feedback.update(
       'feedback',
@@ -178,12 +185,21 @@ void main() {
         url: 'https://test.supabase.co',
         key: 'sb_publishable_test',
         client: MockClient((request) async {
+          if (request.method == 'POST') {
+            expect(request.url.path, endsWith('/rpc/commit_academic_course'));
+            expect(jsonDecode(request.body)['p_changes'].single['filters'], {
+              'course_id': 'bcc',
+              'semester': '2026.2',
+            });
+            return http.Response('null', 200);
+          }
           expect(request.url.queryParameters['course_id'], 'eq.bcc');
           expect(request.url.queryParameters['semester'], 'eq.2026.2');
           expect(request.headers.containsKey('Authorization'), isFalse);
-          return request.method == 'DELETE'
-              ? http.Response('', 204)
-              : http.Response('[{"course_id":"bcc","semester":"2026.2"}]', 200);
+          return http.Response(
+            '[{"course_id":"bcc","semester":"2026.2"}]',
+            200,
+          );
         }),
       );
       addTearDown(store.dispose);

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:my_ufape/features/admin/admin_data.dart';
+import 'package:my_ufape/data/parsers/admin_data.dart';
 
 void main() {
   for (final course in ['bcc', 'eal']) {

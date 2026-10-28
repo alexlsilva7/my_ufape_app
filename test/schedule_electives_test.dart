@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'test_state.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_ufape/core/app_state.dart';
-import 'package:my_ufape/features/academic/schedule/offering_card.dart';
-import 'package:my_ufape/features/academic/schedule_screen.dart';
+import 'package:my_ufape/features/academic/schedule/widgets/offering_card.dart';
+import 'package:my_ufape/features/academic/schedule/schedule_view.dart';
 
 void main() {
   for (final scenario in [
@@ -25,7 +27,7 @@ void main() {
           File('test/fixtures/schedule_bcc_2026_2.json').readAsStringSync(),
         ),
       );
-      final state = AppState()
+      final state = createAppState()
         ..selectedCourse = CourseMeta.fromJson(asMap(reference['course']))
         ..selectedSemester = '2026.2'
         ..selectedProfile = 'BCC03'
@@ -42,7 +44,7 @@ void main() {
                 .copyWith(textScaler: TextScaler.linear(scenario.$3)),
             child: child!,
           ),
-          home: Scaffold(body: ScheduleScreen(state: state)),
+          home: Scaffold(body: ScheduleView(viewModel: state.timetable)),
         ),
       );
       await tester.pumpAndSettle();

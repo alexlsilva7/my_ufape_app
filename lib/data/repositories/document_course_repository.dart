@@ -1,3 +1,4 @@
+import 'course_details_reader.dart';
 import '../../core/models.dart';
 import '../../domain/repositories/course_repository.dart';
 import '../../domain/repositories/curriculum_repository.dart';
@@ -5,7 +6,9 @@ import '../../domain/repositories/contents_repository.dart';
 import '../../domain/repositories/schedule_repository.dart';
 import '../academic_data_store.dart';
 
-class DocumentCourseRepository implements CourseRepository {
+class DocumentCourseRepository
+    with CourseDetailsReader
+    implements CourseRepository {
   DocumentCourseRepository(
     this.store, {
     required this.curricula,
@@ -46,8 +49,14 @@ class DocumentCourseRepository implements CourseRepository {
 
   @override
   Future<JsonMap> list() async {
+    if (store case AcademicCourseMetadataStore metadata) {
+      return {'courses': await metadata.listCourseMetadata()};
+    }
     final courses = await _courses();
-    final rows = await store.select('course_schedules');
+    final rows = await store.select(
+      'course_schedules',
+      columns: ['course_id', 'semester'],
+    );
     return {
       'courses': [
         for (final course in courses)
@@ -65,7 +74,7 @@ class DocumentCourseRepository implements CourseRepository {
   }
 
   @override
-  Future<JsonMap> get(
+  Future<JsonMap> getDocument(
     String id, {
     String? semester,
     bool strict = false,
@@ -106,13 +115,22 @@ class DocumentCourseRepository implements CourseRepository {
     };
   }
 
-  Future<void> _saveMeta(JsonMap data) => store.upsert('courses', {
-    'id': data['id'],
-    'data': data,
-    'updated_at': DateTime.now().toUtc().toIso8601String(),
-  });
+  Future<void> _saveMeta(JsonMap data) =>
+      store.writeCourse(textOf(data['id']), [
+        AcademicMutation.upsert('courses', {
+          'id': data['id'],
+          'data': data,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        }, requireExisting: true),
+      ]);
   @override
   Future<void> save(JsonMap input) async {
+    if ((input['curriculum'] != null &&
+            input['curriculum'] is! Map &&
+            input['curriculum'] is! List) ||
+        (input['schedule'] != null && input['schedule'] is! List)) {
+      throw const FormatException('Currículo ou horário inválido.');
+    }
     final id = textOf(input['id']).trim();
     final name = textOf(input['name']).trim();
     if (!RegExp(r'^[a-z0-9][a-z0-9_-]*$').hasMatch(id) || name.isEmpty) {
@@ -120,7 +138,6 @@ class DocumentCourseRepository implements CourseRepository {
         'Identificador e nome do curso são obrigatórios.',
       );
     }
-    final previous = await _find(id) ?? <String, dynamic>{};
     final semester = textOf(input['semester'], '2026.1').replaceAll('_', '.');
     if (input['schedule'] is List &&
         !RegExp(r'^\d{4}\.[12]$').hasMatch(semester)) {
@@ -144,7 +161,6 @@ class DocumentCourseRepository implements CourseRepository {
     }
     final profileNames =
         <String>{
-          ..._strings(previous['profiles']),
           for (final profile in asList(asMap(curriculum)['profiles']))
             textOf(asMap(profile)['id'] ?? asMap(profile)['name']),
           for (final subject in asList(asMap(curriculum)['subjects']))
@@ -156,28 +172,34 @@ class DocumentCourseRepository implements CourseRepository {
               p.trim().isEmpty ||
               ['optativa', 'sem perfil'].contains(normalized(p)),
         );
-    await _saveMeta({
-      ...previous,
-      'id': id,
-      'name': name,
-      'shortName': textOf(input['shortName'], id.toUpperCase()).trim(),
-      'hasCurriculum': curriculum != null || previous['hasCurriculum'] == true,
-      'hasSchedule':
-          input['schedule'] is List || previous['hasSchedule'] == true,
-      'semesters': _merged(_strings(previous['semesters']), [
-        if (input['schedule'] is List) semester,
-      ]),
-      if (profileNames.isNotEmpty) 'profiles': profileNames.toList(),
-    });
-    if (curriculum != null) await curricula.save(id, curriculum);
-    if (input['schedule'] is List) {
-      await schedules.save(
-        id,
-        semester,
-        input['schedule'],
-        extraction: input['scheduleExtraction'],
-      );
-    }
+    final updatedAt = DateTime.now().toUtc().toIso8601String();
+    await store.writeCourse(id, [
+      AcademicMutation.upsert('courses', {
+        'id': id,
+        'data': {
+          'id': id,
+          'name': name,
+          'shortName': textOf(input['shortName'], id.toUpperCase()).trim(),
+          if (input['schedule'] is List) 'semesters': [semester],
+          if (profileNames.isNotEmpty) 'profiles': profileNames.toList(),
+        },
+        'updated_at': updatedAt,
+      }),
+      if (curriculum != null)
+        AcademicMutation.upsert('course_curricula', {
+          'course_id': id,
+          'data': curriculum,
+          'updated_at': updatedAt,
+        }),
+      if (input['schedule'] is List)
+        AcademicMutation.upsert('course_schedules', {
+          'course_id': id,
+          'semester': semester,
+          'data': input['schedule'],
+          'extraction': input['scheduleExtraction'],
+          'updated_at': updatedAt,
+        }),
+    ]);
   }
 
   @override
@@ -187,7 +209,7 @@ class DocumentCourseRepository implements CourseRepository {
     final name = textOf(metadata['name']).trim();
     if (name.isEmpty) throw const FormatException('Nome obrigatório.');
     await _saveMeta({
-      ...course,
+      'id': course['id'],
       'name': name,
       'shortName': textOf(metadata['shortName']).trim(),
     });
@@ -198,7 +220,7 @@ class DocumentCourseRepository implements CourseRepository {
     final course = await _find(id);
     if (course == null) throw const FormatException('Curso não encontrado.');
     await _saveMeta({
-      ...course,
+      'id': course['id'],
       for (final key in [
         'hidden',
         'showSchedule',
@@ -215,13 +237,8 @@ class DocumentCourseRepository implements CourseRepository {
     final course = await _find(id);
     if (course == null) throw const FormatException('Curso não encontrado.');
     final courseId = textOf(course['id']);
-    for (final table in [
-      'course_curricula',
-      'course_contents',
-      'course_schedules',
-    ]) {
-      await store.delete(table, {'course_id': courseId});
-    }
-    await store.delete('courses', {'id': courseId});
+    await store.writeCourse(courseId, [
+      AcademicMutation.delete('courses', {'id': courseId}),
+    ]);
   }
 }

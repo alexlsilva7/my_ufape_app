@@ -1,20 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'test_state.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:my_ufape/core/api_client.dart';
-import 'package:my_ufape/core/app_state.dart';
-import 'package:my_ufape/features/admin/admin_screen.dart';
+import 'package:my_ufape/app/admin_route.dart';
+import 'package:my_ufape/features/admin/admin_view.dart';
 
 void main() {
   testWidgets('untouched login permits leaving without a phantom draft dialog', (
     tester,
   ) async {
     final config = Completer<http.Response>();
-    final appState = AppState(
+    final appState = createAppState(
       api: AcademicApi(
         baseUrl: 'https://test.invalid',
         client: MockClient((request) async {
@@ -25,7 +27,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: AdminScreen(state: appState)),
+        home: Scaffold(body: AdminRoute(state: appState)),
       ),
     );
     expect(await AdminNavigationGuard.allowLeave(), isTrue);
@@ -54,7 +56,7 @@ void main() {
     testWidgets(
       'failed ${malformedCourse ? 'course normalization' : 'initial loading'} does not create a draft',
       (tester) async {
-        final appState = AppState(
+        final appState = createAppState(
           api: AcademicApi(
             baseUrl: 'https://test.invalid',
             client: MockClient((request) async {
@@ -87,7 +89,7 @@ void main() {
         );
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(body: AdminScreen(state: appState)),
+            home: Scaffold(body: AdminRoute(state: appState)),
           ),
         );
         await tester.pumpAndSettle();
@@ -105,7 +107,7 @@ void main() {
   ) async {
     await tester.binding.setSurfaceSize(const Size(1200, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    final appState = AppState(
+    final appState = createAppState(
       api: AcademicApi(
         baseUrl: 'https://test.invalid',
         client: MockClient((request) async {
@@ -127,7 +129,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: AdminScreen(state: appState)),
+        home: Scaffold(body: AdminRoute(state: appState)),
       ),
     );
     await tester.pumpAndSettle();
@@ -140,9 +142,31 @@ void main() {
     final leaving = AdminNavigationGuard.allowLeave();
     await tester.pumpAndSettle();
     expect(find.text('Alterações não salvas'), findsOneWidget);
+    expect(await AdminNavigationGuard.allowLeave(), isFalse);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
     await tester.tap(find.text('Cancelar'));
     await tester.pumpAndSettle();
     expect(await leaving, isFalse);
+    final model = tester.widget<AdminView>(find.byType(AdminView)).viewModel;
+    final blockedExit = AdminNavigationGuard.allowLeave();
+    await tester.pumpAndSettle();
+    final pending = Completer<void>();
+    final operation = model.run(() => pending.future);
+    await tester.pump();
+    await tester.tap(find.text('Confirmar'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(await blockedExit, isFalse);
+    expect(find.widgetWithText(TextField, 'Nome do curso'), findsOneWidget);
+    pending.complete();
+    await operation;
+    await tester.pumpAndSettle();
+    final retryExit = AdminNavigationGuard.allowLeave();
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.text('Confirmar'));
+    await tester.pumpAndSettle();
+    expect(await retryExit, isTrue);
     await tester.pumpWidget(const SizedBox());
     appState.dispose();
   });

@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'test_state.dart';
+
 import 'package:file_picker/file_picker.dart';
 
 import 'package:flutter/gestures.dart';
@@ -10,9 +12,9 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:my_ufape/core/api_client.dart';
 import 'package:my_ufape/core/app_state.dart';
-import 'package:my_ufape/features/academic/catalog_screen.dart';
-import 'package:my_ufape/features/academic/matrix_screen.dart';
-import 'package:my_ufape/features/academic/schedule_screen.dart';
+import 'package:my_ufape/features/academic/catalog/catalog_view.dart';
+import 'package:my_ufape/features/academic/matrix/matrix_view.dart';
+import 'package:my_ufape/features/academic/schedule/schedule_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core_test.dart' as fixture;
@@ -126,7 +128,7 @@ Future<AppState> createCatalogState() async {
       ],
     },
   };
-  final state = AppState(
+  final state = createAppState(
     api: AcademicApi(
       client: MockClient(
         (request) async => http.Response(
@@ -178,7 +180,7 @@ void main() {
         // Use a short viewport so this compact fixture has scrollable content.
         await mount(
           tester,
-          MatrixScreen(state: state),
+          MatrixView(viewModel: state.matrix),
           size: const Size(1440, 640),
         );
         final viewer = find.byType(InteractiveViewer);
@@ -246,7 +248,7 @@ void main() {
     (tester) async {
       final state = await fixture.createState();
       addTearDown(state.dispose);
-      await mount(tester, MatrixScreen(state: state));
+      await mount(tester, MatrixView(viewModel: state.matrix));
       final viewer = find.byType(InteractiveViewer);
       final transform = tester
           .widget<InteractiveViewer>(viewer)
@@ -309,7 +311,7 @@ void main() {
     (tester) async {
       final state = await fixture.createState();
       addTearDown(state.dispose);
-      await mount(tester, ScheduleScreen(state: state));
+      await mount(tester, ScheduleView(viewModel: state.timetable));
       await tester.tap(find.text('Oferta one'));
       await tester.pumpAndSettle();
       expect(state.schedule.length, 1);
@@ -333,7 +335,7 @@ void main() {
     addTearDown(state.dispose);
     await mount(
       tester,
-      ScheduleScreen(state: state),
+      ScheduleView(viewModel: state.timetable),
       size: const Size(390, 844),
     );
     await tester.tap(find.text('Oferta one'));
@@ -353,7 +355,7 @@ void main() {
     expect(state.catalogSubjects.map((subject) => subject.code), ['OPT1']);
     await mount(
       tester,
-      CatalogScreen(state: state),
+      CatalogView(viewModel: state.catalog),
       size: const Size(390, 844),
     );
     await tester.enterText(find.byType(TextField), 'inteligencia');
@@ -379,7 +381,11 @@ void main() {
   ) async {
     final state = await fixture.createState();
     addTearDown(state.dispose);
-    await mount(tester, MatrixScreen(state: state), size: const Size(390, 844));
+    await mount(
+      tester,
+      MatrixView(viewModel: state.matrix),
+      size: const Size(390, 844),
+    );
     await tester.ensureVisible(find.text('Adicionar optativa'));
     await tester.tap(find.text('Adicionar optativa'));
     await tester.pumpAndSettle();
@@ -407,7 +413,7 @@ void main() {
       addTearDown(state.dispose);
       await mount(
         tester,
-        MatrixScreen(state: state),
+        MatrixView(viewModel: state.matrix),
         size: const Size(1440, 1600),
       );
       await tester.ensureVisible(find.byTooltip('Detalhes e nota').first);
@@ -448,7 +454,7 @@ void main() {
       await state.selectProfile('P1');
       state.setSubjectStatus(state.subjects.first, 'concluido');
       state.setGrade(state.subjects.first, '9.4');
-      await mount(tester, MatrixScreen(state: state));
+      await mount(tester, MatrixView(viewModel: state.matrix));
       await openProgressMenu(tester, 'Exportar progresso do perfil');
       expect(picker.exportedName, 'a_P1_progresso.json');
       final data = jsonDecode(
@@ -484,7 +490,7 @@ void main() {
       state.setHours(acex: 15, acc: 10);
       picker.incoming = state.exportProfileProgress();
       state.resetProfileProgress();
-      await mount(tester, MatrixScreen(state: state));
+      await mount(tester, MatrixView(viewModel: state.matrix));
       await openProgressMenu(tester, 'Importar progresso do perfil');
       expect(find.text('Importar progresso do perfil?'), findsOneWidget);
       await tester.tap(find.text('Cancelar'));
@@ -507,7 +513,7 @@ void main() {
   ) async {
     final state = await fixture.createState();
     addTearDown(state.dispose);
-    await mount(tester, MatrixScreen(state: state));
+    await mount(tester, MatrixView(viewModel: state.matrix));
     final field = find.byKey(const ValueKey('matrix-hours-acex'));
     await tester.ensureVisible(field);
     await tester.enterText(field, '12');
@@ -538,7 +544,7 @@ void main() {
       );
       state.addElective(name: 'Optativa adicional', hours: 60);
       state.setHours(acex: 20, acc: 10);
-      await mount(tester, MatrixScreen(state: state));
+      await mount(tester, MatrixView(viewModel: state.matrix));
       await tester.tap(find.text('Limpar progresso'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancelar'));

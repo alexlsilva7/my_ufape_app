@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'test_state.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -11,11 +13,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_ufape/core/api_client.dart';
 import 'package:my_ufape/core/app_state.dart';
 import 'package:my_ufape/core/theme/app_theme.dart';
-import 'package:my_ufape/features/home/home_screen.dart';
+import 'package:my_ufape/features/home/home_view.dart';
 
 Future<AppState> _state({bool selected = true}) async {
   SharedPreferences.setMockInitialValues({});
-  final state = AppState(
+  final state = createAppState(
     api: AcademicApi(
       client: MockClient((_) async => throw Exception('offline')),
     ),
@@ -100,7 +102,7 @@ void main() {
           home: RepaintBoundary(
             key: boundary,
             child: Scaffold(
-              body: SafeArea(child: HomeScreen(state: state)),
+              body: SafeArea(child: HomeView(viewModel: state.home)),
             ),
           ),
         ),
@@ -123,7 +125,7 @@ void main() {
                 ? 'assets/images/my_ufape_logo_azul.png'
                 : 'assets/images/my_ufape_logo.png',
           ),
-          tester.element(find.byType(HomeScreen)),
+          tester.element(find.byType(HomeView)),
         ),
       );
       await tester.pumpAndSettle();
@@ -158,7 +160,7 @@ void main() {
         GoRoute(
           path: '/',
           builder: (context, _) => Scaffold(
-            body: SafeArea(child: HomeScreen(state: state)),
+            body: SafeArea(child: HomeView(viewModel: state.home)),
           ),
         ),
         for (final path in paths)

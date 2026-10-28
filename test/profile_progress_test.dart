@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'test_state.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:my_ufape/core/api_client.dart';
@@ -8,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<AppState> openBcc() async {
   SharedPreferences.setMockInitialValues({});
-  final state = AppState(
+  final state = createAppState(
     api: AcademicApi(
       client: MockClient((_) async => throw Exception('offline')),
     ),

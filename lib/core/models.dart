@@ -238,6 +238,8 @@ class Subject {
       raw: Map.of(data),
     );
   }
+  bool get isCatalogElective =>
+      isElective || raw['period'] == 0 || raw['period'] == '0';
   bool get isElective => [
     type,
     raw['academicType'],

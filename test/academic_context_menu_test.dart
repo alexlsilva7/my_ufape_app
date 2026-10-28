@@ -5,9 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_ufape/core/app_state.dart';
 import 'package:my_ufape/core/theme/app_theme.dart';
-import 'package:my_ufape/features/academic/academic_context_menu.dart';
-import 'package:my_ufape/features/academic/matrix_screen.dart';
-import 'package:my_ufape/features/academic/schedule_screen.dart';
+import 'package:my_ufape/features/academic/widgets/academic_context_menu.dart';
+import 'package:my_ufape/features/academic/matrix/matrix_view.dart';
+import 'package:my_ufape/features/academic/schedule/schedule_view.dart';
 
 import 'core_test.dart' as fixture;
 
@@ -45,8 +45,8 @@ Future<AppState> _mount(
       theme: appTheme(Brightness.light),
       home: Scaffold(
         body: matrix
-            ? MatrixScreen(state: state)
-            : ScheduleScreen(state: state),
+            ? MatrixView(viewModel: state.matrix)
+            : ScheduleView(viewModel: state.timetable),
       ),
     ),
   );

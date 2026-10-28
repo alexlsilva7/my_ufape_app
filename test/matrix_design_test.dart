@@ -1,15 +1,16 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'test_state.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:my_ufape/features/academic/matrix_screen.dart';
+import 'package:my_ufape/features/academic/matrix/matrix_view.dart';
 import 'package:my_ufape/app/app_shell.dart';
 import 'package:my_ufape/core/theme/app_theme.dart';
 
-import 'package:my_ufape/core/app_state.dart';
 import 'package:my_ufape/core/api_client.dart';
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,7 +34,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       SharedPreferences.setMockInitialValues({});
-      final state = AppState(
+      final state = createAppState(
         api: AcademicApi(
           client: MockClient((_) async => throw Exception('offline')),
         ),
@@ -102,7 +103,7 @@ void main() {
             child: AppShell(
               state: state,
               location: '/matriz',
-              child: MatrixScreen(state: state),
+              child: MatrixView(viewModel: state.matrix),
             ),
           ),
         ),

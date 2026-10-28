@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_ufape/core/app_state.dart';
-import 'package:my_ufape/features/academic/schedule/session_motion.dart';
-import 'package:my_ufape/features/academic/schedule_screen.dart';
+import 'package:my_ufape/features/academic/schedule/widgets/session_motion.dart';
+import 'package:my_ufape/features/academic/schedule/schedule_view.dart';
 import 'package:my_ufape/core/theme/app_theme.dart';
 
 import 'academic_ui_test.dart' show useProgressFilePicker;
@@ -36,7 +36,7 @@ Future<AppState> _mount(
         ),
         child: child!,
       ),
-      home: Scaffold(body: ScheduleScreen(state: state)),
+      home: Scaffold(body: ScheduleView(viewModel: state.timetable)),
     ),
   );
   await tester.pumpAndSettle();

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'test_state.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_ufape/app/app_repositories.dart';
@@ -36,7 +38,10 @@ void main() {
       });
       final repositories = local();
       expect(repositories.courses, isA<LocalCourseRepository>());
-      final state = AppState(repositories: repositories, assetLoader: asset);
+      final state = createAppState(
+        repositories: repositories,
+        assetLoader: asset,
+      );
       addTearDown(state.dispose);
       await state.initialize();
       expect(state.offline, isFalse);
@@ -97,7 +102,7 @@ void main() {
     repositories.dispose();
 
     repositories = local();
-    final result = await repositories.courses.get(
+    final result = await repositories.courses.getDocument(
       'offline-course',
       semester: '2027.1',
       strict: true,
@@ -108,14 +113,14 @@ void main() {
     expect(result['curriculum']['subjects'], hasLength(1));
     expect(result['contents']['disciplinas'].first['ementa'], 'Ementa offline');
     expect(result['schedule'], hasLength(1));
-    final missing = await repositories.courses.get(
+    final missing = await repositories.courses.getDocument(
       'offline-course',
       semester: '2028.1',
       strict: true,
     );
     expect(missing['schedule'], isNull);
     expect(
-      (await repositories.courses.get(
+      (await repositories.courses.getDocument(
         'offline-course',
         semester: '2028.1',
       ))['resolvedSemester'],
@@ -132,7 +137,7 @@ void main() {
       isNot(contains('bcc')),
     );
     expect(
-      () => restarted.courses.get('offline-course'),
+      () => restarted.courses.getDocument('offline-course'),
       throwsFormatException,
     );
   });

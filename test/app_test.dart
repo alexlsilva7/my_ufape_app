@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'test_state.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -8,8 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_ufape/core/api_client.dart';
 import 'package:my_ufape/core/app_state.dart';
 import 'package:my_ufape/main.dart';
-import 'package:my_ufape/features/calendar/calendar_screen.dart';
-import 'package:my_ufape/features/feedback/feedback_dialog.dart';
+import 'package:my_ufape/features/calendar/calendar_view.dart';
+import 'package:my_ufape/features/feedback/feedback_view.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core_test.dart' as fixture;
@@ -23,7 +25,7 @@ Future<AppState> readyState() async {
     'hasSchedule': true,
     'hasCurriculum': true,
   };
-  final state = AppState(
+  final state = createAppState(
     api: AcademicApi(
       client: MockClient(
         (request) async => http.Response(
@@ -151,7 +153,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: FeedbackDialog(state: state, view: '/'),
+          body: FeedbackView(viewModel: state.feedback, view: '/'),
         ),
       ),
     );

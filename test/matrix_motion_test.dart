@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_ufape/core/app_state.dart';
-import 'package:my_ufape/features/academic/matrix_screen.dart';
+import 'package:my_ufape/features/academic/matrix/matrix_view.dart';
+import 'package:my_ufape/features/academic/matrix/widgets/matrix_graph.dart';
+import 'package:my_ufape/features/academic/matrix/widgets/subject_card.dart';
+import 'package:my_ufape/features/academic/matrix/widgets/progress_summary.dart';
 import 'package:my_ufape/core/theme/app_theme.dart';
 
 import 'core_test.dart' as fixture;
@@ -35,7 +38,7 @@ Future<AppState> _mount(
         ),
         child: child!,
       ),
-      home: Scaffold(body: MatrixScreen(state: state)),
+      home: Scaffold(body: MatrixView(viewModel: state.matrix)),
     ),
   );
   await tester.pumpAndSettle();
@@ -124,6 +127,8 @@ void main() {
     (tester) async {
       await _mount(tester);
       final before = tester.element(_card('slot'));
+      final graph = tester.widget<MatrixGraph>(find.byType(MatrixGraph));
+      final progress = tester.widget(find.byType(MatrixProgressSummary));
       final pointer = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await pointer.addPointer(location: Offset.zero);
       addTearDown(pointer.removePointer);
@@ -135,6 +140,19 @@ void main() {
       expect(_opacity(tester, 'slot'), closeTo(.4, .001));
       expect(_opacity(tester, 'second'), 1);
       expect(identical(before, tester.element(_card('slot'))), isTrue);
+      expect(tester.widget<MatrixGraph>(find.byType(MatrixGraph)), same(graph));
+      expect(tester.widget(find.byType(MatrixProgressSummary)), same(progress));
+      final unrelated = tester
+          .widgetList<MatrixSubjectCard>(find.byType(MatrixSubjectCard))
+          .singleWhere((card) => card.subject.id == 'slot');
+      await pointer.moveTo(tester.getCenter(_card('second')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widgetList<MatrixSubjectCard>(find.byType(MatrixSubjectCard))
+            .singleWhere((card) => card.subject.id == 'slot'),
+        same(unrelated),
+      );
       await pointer.moveTo(Offset.zero);
       await tester.pumpAndSettle();
       expect(_opacity(tester, 'slot'), 1);

@@ -8,9 +8,9 @@ O alvo é o repositório aberto `grade_academica_app`, incluindo suas alteraçõ
 | --- | --- | --- |
 | Rotas, tema e seleção | `src/App.tsx`, `src/hooks/useSchedule.ts`, `src/utils/appLocation.ts` | `lib/main.dart`, `core/app_state.dart` |
 | Início e visibilidade | `HomeView.tsx`, `types.ts` | `features/home/`, `core/models.dart` |
-| Grade e conflitos | `Sidebar.tsx`, `ScheduleGrid.tsx`, `utils/scheduleBlocks.ts` | `features/academic/schedule_screen.dart` |
-| Matriz, requisitos e progresso | `MatrizView.tsx`, `utils/matrixProgress.ts`, `disciplineCompletion.ts`, `matrixElectives.ts` | `features/academic/matrix_screen.dart`, `core/app_state.dart` |
-| Catálogo e conteúdos | `DisciplinesView.tsx`, `DisciplineDetailsModal.tsx`, `detailsHelper.ts` | `features/academic/catalog_screen.dart`, `academic_common.dart` |
+| Grade e conflitos | `Sidebar.tsx`, `ScheduleGrid.tsx`, `utils/scheduleBlocks.ts` | `features/academic/schedule/schedule_view.dart` |
+| Matriz, requisitos e progresso | `MatrizView.tsx`, `utils/matrixProgress.ts`, `disciplineCompletion.ts`, `matrixElectives.ts` | `features/academic/matrix/matrix_view.dart`, `core/app_state.dart` |
+| Catálogo e conteúdos | `DisciplinesView.tsx`, `DisciplineDetailsModal.tsx`, `detailsHelper.ts` | `features/academic/catalog/catalog_view.dart`, `features/academic/widgets/academic_common.dart` |
 | Calendário | `academicCalendarPdf.ts`, `CalendarImageViewer.tsx`, `public/documents/` | `features/calendar/`, `assets/calendar/` |
 | Backup | `utils/backupHelper.ts` | `core/app_state.dart`, `services/files.dart` |
 | Feedback | `utils/feedback.ts`, `server/feedbackRoutes.ts` | `features/feedback/`, caixa administrativa |

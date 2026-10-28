@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'test_state.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
@@ -13,7 +15,7 @@ Future<AppState> snapshotState({Map<String, Object> saved = const {}}) async {
     client: MockClient((_) async => throw Exception('offline test')),
   );
   // No injected asset loader: these tests exercise the real Flutter bundle.
-  final state = AppState(api: api);
+  final state = createAppState(api: api);
   await state.initialize();
   return state;
 }

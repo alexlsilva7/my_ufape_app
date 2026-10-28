@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:async';
 
+import 'test_state.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -88,7 +90,10 @@ Future<AppState> createState({
   Map<String, Object> saved = const {},
   bool fail = false,
 }) async {
-  SharedPreferences.setMockInitialValues(saved);
+  SharedPreferences.setMockInitialValues({
+    'selectedSemester': '2026.1',
+    ...saved,
+  });
   final api = AcademicApi(
     client: MockClient((request) async {
       if (fail) throw Exception('offline');
@@ -104,7 +109,7 @@ Future<AppState> createState({
       );
     }),
   );
-  final state = AppState(
+  final state = createAppState(
     api: api,
     assetLoader: (path) async => jsonEncode(
       path.endsWith('courses.json')
@@ -128,7 +133,7 @@ void main() {
     'a fresh-install backup is restorable and retains explicit default keys',
     () async {
       SharedPreferences.setMockInitialValues({});
-      final state = AppState(
+      final state = createAppState(
         api: AcademicApi(
           client: MockClient(
             (_) async => http.Response(
@@ -254,7 +259,7 @@ void main() {
         );
       }),
     );
-    final state = AppState(api: api);
+    final state = createAppState(api: api);
     await state.initialize();
     final pending = state.selectCourse(state.courses.first);
     await state.selectCourse(state.courses.last);

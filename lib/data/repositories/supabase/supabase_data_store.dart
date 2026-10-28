@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/models.dart';
 import '../../academic_data_store.dart';
+import '../../academic_batch.dart';
 
 class SupabaseDataStore implements AcademicDataStore {
   SupabaseDataStore({
@@ -85,6 +86,7 @@ class SupabaseDataStore implements AcademicDataStore {
   Future<List<JsonMap>> select(
     String table, {
     Map<String, String> filters = const {},
+    List<String>? columns,
   }) async {
     final rows = <JsonMap>[];
     // Respect PostgREST's default page limit without silently dropping rows.
@@ -92,7 +94,7 @@ class SupabaseDataStore implements AcademicDataStore {
       final page = await request(
         table,
         query: {
-          'select': '*',
+          'select': columns?.join(',') ?? '*',
           ..._filters(filters),
           'limit': '500',
           'offset': '$offset',
@@ -113,6 +115,12 @@ class SupabaseDataStore implements AcademicDataStore {
 
   @override
   Future<void> upsert(String table, JsonMap row) async {
+    if (AcademicBatch.tables.contains(table)) {
+      await writeCourse(textOf(row[table == 'courses' ? 'id' : 'course_id']), [
+        AcademicMutation.upsert(table, row),
+      ]);
+      return;
+    }
     await request(
       table,
       method: 'POST',
@@ -124,11 +132,31 @@ class SupabaseDataStore implements AcademicDataStore {
   @override
   Future<void> delete(String table, Map<String, String> filters) async {
     if (filters.isEmpty) throw ArgumentError('Exclusão exige identificador.');
+    if (AcademicBatch.tables.contains(table)) {
+      await writeCourse(
+        textOf(filters[table == 'courses' ? 'id' : 'course_id']),
+        [AcademicMutation.delete(table, filters)],
+      );
+      return;
+    }
     await request(
       table,
       method: 'DELETE',
       query: _filters(filters),
       prefer: 'return=minimal',
+    );
+  }
+
+  @override
+  Future<void> writeCourse(
+    String courseId,
+    List<AcademicMutation> changes,
+  ) async {
+    final batch = AcademicBatch(courseId, changes);
+    await request(
+      'rpc/commit_academic_course',
+      method: 'POST',
+      body: {'p_course_id': courseId, 'p_changes': batch.changes},
     );
   }
 

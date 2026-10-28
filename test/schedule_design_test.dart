@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'test_state.dart';
+
 import 'package:http/http.dart' as http;
 
 import 'dart:ui' as ui;
@@ -15,7 +17,7 @@ import 'package:my_ufape/core/api_client.dart';
 import 'package:my_ufape/core/app_state.dart';
 import 'package:my_ufape/app/app_shell.dart';
 import 'package:my_ufape/core/theme/app_theme.dart';
-import 'package:my_ufape/features/academic/schedule_screen.dart';
+import 'package:my_ufape/features/academic/schedule/schedule_view.dart';
 
 void main() {
   for (final scenario in [
@@ -31,7 +33,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       SharedPreferences.setMockInitialValues({'selectedSemester': '2026.2'});
-      final state = AppState(
+      final state = createAppState(
         api: AcademicApi(
           client: MockClient((request) async {
             if (request.url.path == '/api/courses') {
@@ -114,7 +116,7 @@ void main() {
             child: AppShell(
               state: state,
               location: '/schedule',
-              child: ScheduleScreen(state: state),
+              child: ScheduleView(viewModel: state.timetable),
             ),
           ),
         ),
